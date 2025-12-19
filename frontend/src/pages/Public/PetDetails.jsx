@@ -35,19 +35,23 @@ const PetDetails = () => {
   };
 
   const apply = async () => {
-    if (!user) {
-      showToastMsg("Please login to apply.");
-      setTimeout(() => navigate("/login"), 1500);
-      return;
-    }
+  if (!user) {
+    showToastMsg("Please login to apply.");
+    setTimeout(() => navigate("/login"), 1500);
+    return;
+  }
 
-    try {
-      await api.post(`/adoptions/${id}`);
-      showToastMsg("Application submitted successfully!");
-    } catch {
-      showToastMsg("You already applied or cannot apply.");
-    }
-  };
+  try {
+    await api.post(`/adoptions/${id}`);
+    showToastMsg("Application submitted successfully!");
+
+    // navigate to pet list after 2 seconds
+    setTimeout(() => navigate("/"), 2000);
+  } catch {
+    showToastMsg("You already applied or cannot apply.");
+  }
+};
+
 
   if (loading) {
     return (

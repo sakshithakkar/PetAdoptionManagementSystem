@@ -8,7 +8,8 @@ import ManagePets from "./pages/Admin/ManagePets";
 import Applications from "./pages/Admin/Applications";
 import Navbar from "./components/Navbar";
 import ProtectedRoute from "./components/ProtectedRoute";
-
+import UserDashboard from "./pages/User/Dashboard";
+import AdminDashboard from "./pages/Admin/Dashboard";
 function App() {
   return (
     <>
@@ -21,10 +22,15 @@ function App() {
         <Route path="/register" element={<Register />} />
 
         {/* User-only routes */}
-        <Route
+        {/* <Route
           path="/my-applications"
           element={<ProtectedRoute element={MyApplications} role="USER" />}
-        />
+        /> */}
+
+        {/* Protected Routes */}
+        <Route path="/dashboard" element={
+          <ProtectedRoute element={UserDashboard} role="USER" />
+        } />
 
         {/* Admin-only routes */}
         <Route
@@ -35,6 +41,8 @@ function App() {
           path="/admin/applications"
           element={<ProtectedRoute element={Applications} role="ADMIN" />}
         />
+         <Route path="/admin/dashboard" element={
+          <ProtectedRoute element={AdminDashboard} role="ADMIN" />} />
       </Routes>
     </>
   );

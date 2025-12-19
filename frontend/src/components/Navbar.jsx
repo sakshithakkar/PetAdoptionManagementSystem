@@ -48,14 +48,20 @@ const Navbar = () => {
             <>
               {user.role === "USER" && (
                 <li className="nav-item">
-                  <NavLink className="nav-link" to="/my-applications">
-                    My Applications
+                  <NavLink className="nav-link" to="/dashboard">
+                    Dashboard
                   </NavLink>
                 </li>
               )}
 
               {user.role === "ADMIN" && (
                 <>
+                <li className="nav-item">
+                    <NavLink className="nav-link" to="/admin/dashboard">
+                      Dashboard
+                    </NavLink>
+                  </li>
+
                   <li className="nav-item">
                     <NavLink className="nav-link" to="/admin/pets">
                       Manage Pets

@@ -30,8 +30,8 @@ const Login = () => {
       login({ id: payload.id, role: payload.role, name: payload.name }, token);
 
       payload.role === "ADMIN"
-        ? navigate("/admin/applications")
-        : navigate("/");
+        ? navigate("/admin/dashboard")
+        : navigate("/dashboard");
 
     } catch {
       showAlert("danger", "Invalid email or password");
