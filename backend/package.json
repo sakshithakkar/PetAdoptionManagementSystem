@@ -1,7 +1,7 @@
 {
   "name": "backend",
   "version": "1.0.0",
-  "versioncomment": "Added APIs for Pet Adoption Management",
+  "versioncomment": "Added name in jwt token",
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
