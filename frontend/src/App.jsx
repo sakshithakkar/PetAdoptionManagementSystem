@@ -10,6 +10,7 @@ import Navbar from "./components/Navbar";
 import ProtectedRoute from "./components/ProtectedRoute";
 import UserDashboard from "./pages/User/Dashboard";
 import AdminDashboard from "./pages/Admin/Dashboard";
+import './App.css'
 function App() {
   return (
     <>
@@ -20,12 +21,6 @@ function App() {
         <Route path="/pets/:id" element={<PetDetails />} />
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
-
-        {/* User-only routes */}
-        {/* <Route
-          path="/my-applications"
-          element={<ProtectedRoute element={MyApplications} role="USER" />}
-        /> */}
 
         {/* Protected Routes */}
         <Route path="/dashboard" element={

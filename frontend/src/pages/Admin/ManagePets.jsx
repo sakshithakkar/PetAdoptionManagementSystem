@@ -7,13 +7,13 @@ const initialForm = {
   breed: "",
   age: "",
   description: "",
+  image: null, // new field for image
 };
 
 const ManagePets = () => {
   const [pets, setPets] = useState([]);
   const [form, setForm] = useState(initialForm);
   const [editingId, setEditingId] = useState(null);
-
   const [loading, setLoading] = useState(false);
   const [alert, setAlert] = useState({ type: "", message: "" });
   const [showModal, setShowModal] = useState(false);
@@ -22,9 +22,14 @@ const ManagePets = () => {
   const [limit] = useState(10); // pets per page
   const [totalPets, setTotalPets] = useState(0);
 
+  const [showImageModal, setShowImageModal] = useState(false);
+  const [previewImage, setPreviewImage] = useState(null);
+
   useEffect(() => {
     fetchPets();
   }, [page]);
+
+  console.log(api.defaults.baseURL, ' upload')
 
   const showAlert = (type, message) => {
     setAlert({ type, message });
@@ -35,8 +40,8 @@ const ManagePets = () => {
     try {
       setLoading(true);
       const res = await api.get("/pets", { params: { page, limit } });
-      setPets(res.data);
-      setTotalPets(res.data.total || res.data.length); // adapt based on API
+      setPets(res.data.pets || res.data); // adjust based on API
+      setTotalPets(res.data.total || res.data.length);
     } catch {
       showAlert("danger", "Failed to fetch pets");
     } finally {
@@ -48,13 +53,28 @@ const ManagePets = () => {
     e.preventDefault();
     try {
       setLoading(true);
+
+      // Prepare FormData for image upload
+      const formData = new FormData();
+      formData.append("name", form.name);
+      formData.append("species", form.species);
+      formData.append("breed", form.breed);
+      formData.append("age", form.age);
+      formData.append("description", form.description);
+      if (form.image) formData.append("image", form.image);
+
       if (editingId) {
-        await api.put(`/pets/${editingId}`, form);
+        await api.put(`/pets/${editingId}`, formData, {
+          headers: { "Content-Type": "multipart/form-data" },
+        });
         showAlert("success", "Pet updated successfully");
       } else {
-        await api.post("/pets", form);
+        await api.post("/pets", formData, {
+          headers: { "Content-Type": "multipart/form-data" },
+        });
         showAlert("success", "Pet added successfully");
       }
+
       setForm(initialForm);
       setEditingId(null);
       setShowModal(false);
@@ -87,6 +107,7 @@ const ManagePets = () => {
       breed: pet.breed,
       age: pet.age,
       description: pet.description,
+      image: null, // reset image for editing
     });
     setShowModal(true);
   };
@@ -134,14 +155,14 @@ const ManagePets = () => {
               <th>Species</th>
               <th>Breed</th>
               <th>Age</th>
+              <th>Image</th>
               <th className="text-center">Actions</th>
             </tr>
           </thead>
-
           <tbody>
             {pets.length === 0 && (
               <tr>
-                <td colSpan="5" className="text-center text-muted">
+                <td colSpan="6" className="text-center text-muted">
                   No pets found
                 </td>
               </tr>
@@ -153,6 +174,25 @@ const ManagePets = () => {
                 <td>{p.species}</td>
                 <td>{p.breed}</td>
                 <td>{p.age}</td>
+                <td>
+                  {p.image ? (
+                    <img
+                      src={`${api.defaults.baseURL}/uploads/${p.image}`}
+                      alt={p.name}
+                      className="pet-thumb"
+                      onClick={() => {
+                        setPreviewImage(
+                          p.image
+                            ? `${api.defaults.baseURL}/uploads/${p.image}`
+                            : null
+                        );
+                        setShowImageModal(true);
+                      }}
+                    />
+                  ) : (
+                    "-"
+                  )}
+                </td>
                 <td className="text-center">
                   <button
                     className="btn btn-sm btn-warning me-2"
@@ -285,7 +325,20 @@ const ManagePets = () => {
                     }
                   ></textarea>
                 </div>
+
+                <div className="mb-3">
+                  <label className="form-label">Image</label>
+                  <input
+                    type="file"
+                    className="form-control"
+                    accept="image/*"
+                    onChange={(e) =>
+                      setForm({ ...form, image: e.target.files[0] })
+                    }
+                  />
+                </div>
               </div>
+
               <div className="modal-footer">
                 <button
                   type="button"
@@ -302,6 +355,36 @@ const ManagePets = () => {
           </div>
         </div>
       </div>
+
+      {/* IMAGE PREVIEW MODAL */}
+      {showImageModal && (
+        <div
+          className="modal fade show d-block"
+          style={{ backgroundColor: "rgba(0,0,0,0.7)" }}
+        >
+          <div className="modal-dialog modal-dialog-centered modal-lg">
+            <div className="modal-content">
+              <div className="modal-header">
+                <h5 className="modal-title">Pet Image</h5>
+                <button
+                  className="btn-close"
+                  onClick={() => setShowImageModal(false)}
+                />
+              </div>
+
+              <div className="modal-body text-center">
+                <img
+                  src={previewImage}
+                  alt="Pet"
+                  className="img-fluid rounded"
+                  style={{ maxHeight: "70vh" }}
+                />
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
     </div>
   );
 };

@@ -35,22 +35,22 @@ const PetDetails = () => {
   };
 
   const apply = async () => {
-  if (!user) {
-    showToastMsg("Please login to apply.");
-    setTimeout(() => navigate("/login"), 1500);
-    return;
-  }
+    if (!user) {
+      showToastMsg("Please login to apply.");
+      setTimeout(() => navigate("/login"), 1500);
+      return;
+    }
 
-  try {
-    await api.post(`/adoptions/${id}`);
-    showToastMsg("Application submitted successfully!");
+    try {
+      await api.post(`/adoptions/${id}`);
+      showToastMsg("Application submitted successfully!");
 
-    // navigate to pet list after 2 seconds
-    setTimeout(() => navigate("/"), 2000);
-  } catch {
-    showToastMsg("You already applied or cannot apply.");
-  }
-};
+      // navigate to pet list after 2 seconds
+      setTimeout(() => navigate("/"), 2000);
+    } catch {
+      showToastMsg("You already applied or cannot apply.");
+    }
+  };
 
 
   if (loading) {
@@ -75,9 +75,8 @@ const PetDetails = () => {
       {/* TOAST */}
       <div
         ref={toastRef}
-        className={`toast position-fixed top-0 end-0 m-3 ${
-          showToast ? "show" : "hide"
-        }`}
+        className={`toast position-fixed top-0 end-0 m-3 ${showToast ? "show" : "hide"
+          }`}
         style={{ zIndex: 9999 }}
       >
         <div className="toast-header">
@@ -102,7 +101,22 @@ const PetDetails = () => {
         <div className="col-md-8">
           <div className="card shadow-sm">
             <div className="card-body">
-              <h2 className="mb-3">{pet.name}</h2>
+              {/* PET IMAGE */}
+              <div className="text-center mb-4">
+                {pet.image && (
+                <img
+                  src={
+                    pet.image
+                      ? `${api.defaults.baseURL}/uploads/${pet.image}`
+                      : null
+                  }
+                  alt={pet.name}
+                  className="pet-details-img"
+                />)}
+              </div>
+
+              <h2 className="mb-3 text-center">{pet.name}</h2>
+
 
               <p><strong>Species:</strong> {pet.species}</p>
               <p><strong>Breed:</strong> {pet.breed}</p>

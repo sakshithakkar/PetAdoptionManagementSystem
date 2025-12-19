@@ -1,11 +1,12 @@
 import { useEffect, useState } from "react";
 import api from "../../api/axios";
+import { useNavigate } from "react-router-dom";
 
 const Applications = () => {
   const [apps, setApps] = useState([]);
   const [loading, setLoading] = useState(false);
   const [alert, setAlert] = useState({ type: "", message: "" });
-
+  const navigate = useNavigate();
   useEffect(() => {
     fetchApps();
   }, []);
@@ -84,15 +85,16 @@ const Applications = () => {
                 <tr key={a.id}>
                   <td>{index + 1}</td>
                   <td>{a.user}</td>
-                  <td>{a.pet}</td>
+                  <td className="clickable-link"
+                    onClick={() => navigate(`/pets/${a.petId}`)}>{a.pet}</td>
                   <td>
                     <span
                       className={`badge 
                         ${a.status === "APPROVED"
                           ? "bg-success"
                           : a.status === "REJECTED"
-                          ? "bg-danger"
-                          : "bg-warning text-dark"}`}
+                            ? "bg-danger"
+                            : "bg-warning text-dark"}`}
                     >
                       {a.status}
                     </span>
