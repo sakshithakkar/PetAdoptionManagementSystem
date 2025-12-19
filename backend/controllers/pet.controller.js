@@ -1,4 +1,27 @@
 import { db } from "../config/db.js";
+import multer from "multer";
+import path from "path";
+import { fileURLToPath } from "url";
+// Fix __dirname in ES modules
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
+// Ensure uploads folder exists
+const uploadsDir = path.join(__dirname, "..", "uploads");
+
+// Set storage
+const storage = multer.diskStorage({
+  destination: function (req, file, cb) {
+    cb(null, uploadsDir); // folder to store images
+  },
+  filename: function (req, file, cb) {
+    const ext = path.extname(file.originalname);
+    cb(null, file.fieldname + "-" + Date.now() + ext);
+  }
+});
+
+export const upload = multer({ storage });
+
 
 // Visitor: list pets with search, filter, pagination
 export const getPets = async (req, res) => {
@@ -55,10 +78,11 @@ export const getPet = async (req, res) => {
 export const addPet = async (req, res) => {
   try {
     const { name, species, breed, age, description } = req.body;
+    const image = req.file ? req.file.filename : null; // filename from multer
 
     await db.query(
-      "INSERT INTO pets (name, species, breed, age, description) VALUES (?, ?, ?, ?, ?)",
-      [name, species, breed, age, description]
+      "INSERT INTO pets (name, species, breed, age, description, image) VALUES (?, ?, ?, ?, ?, ?)",
+      [name, species, breed, age, description, image]
     );
 
     res.status(201).json({ message: "Pet added" });
@@ -71,12 +95,21 @@ export const addPet = async (req, res) => {
 export const updatePet = async (req, res) => {
   try {
     const { name, species, breed, age, description, status } = req.body;
+    const image = req.file ? req.file.filename : null;
+    const params = [name, species, breed, age, description];
+    let query = `UPDATE pets SET name=?, species=?, breed=?, age=?, description=?`;
+
+    if (image) {
+      query += `, image=?`;
+      params.push(image);
+    }
+
+    query += ` WHERE id=?`;
+    params.push(req.params.id);
 
     await db.query(
-      `UPDATE pets 
-       SET name=?, species=?, breed=?, age=?, description=?
-       WHERE id=?`,
-      [name, species, breed, age, description, req.params.id]
+      query,
+      params
     );
 
     res.json({ message: "Pet updated" });

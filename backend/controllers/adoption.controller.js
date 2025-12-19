@@ -62,7 +62,7 @@ export const myApplications = async (req, res) => {
 export const allApplications = async (req, res) => {
   try {
     const [apps] = await db.query(
-      `SELECT a.id, u.name AS user, p.name AS pet, a.status
+      `SELECT a.id, u.name AS user, p.name AS pet, a.status, p.id AS petId
        FROM adoptions a
        JOIN users u ON a.user_id = u.id
        JOIN pets p ON a.pet_id = p.id`

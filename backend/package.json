@@ -1,7 +1,7 @@
 {
   "name": "backend",
-  "version": "1.0.0",
-  "versioncomment": "Added name in jwt token",
+  "version": "1.0.1",
+  "versioncomment": "Added functionality to add images",
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
@@ -19,6 +19,7 @@
     "express": "^5.2.1",
     "express-validator": "^7.3.1",
     "jsonwebtoken": "^9.0.3",
+    "multer": "^2.0.2",
     "mysql2": "^3.16.0"
   },
   "devDependencies": {
