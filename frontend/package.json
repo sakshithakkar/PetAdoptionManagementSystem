@@ -1,8 +1,8 @@
 {
   "name": "frontend",
   "private": true,
-  "version": "1.0.3",
-  "versioncomment": "Added functionality to add images",
+  "version": "1.0.4",
+  "versioncomment": "Added readme and comments",
   "type": "module",
   "scripts": {
     "dev": "vite",

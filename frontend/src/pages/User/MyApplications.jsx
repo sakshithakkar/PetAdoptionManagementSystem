@@ -2,27 +2,35 @@ import { useEffect, useState } from "react";
 import api from "../../api/axios";
 
 const MyApplications = () => {
+  // State to store the user's adoption applications
   const [apps, setApps] = useState([]);
+  
+  // Loading state to show a spinner while fetching data
   const [loading, setLoading] = useState(false);
+  
+  // Error state to show any fetch-related errors
   const [error, setError] = useState("");
 
+  // Fetch applications on component mount
   useEffect(() => {
     fetchMyApps();
   }, []);
 
+  // Function to fetch current user's adoption applications
   const fetchMyApps = async () => {
     try {
-      setLoading(true);
-      setError("");
-      const res = await api.get("/adoptions/me");
-      setApps(res.data);
+      setLoading(true);   // Start loader
+      setError("");       // Clear any previous errors
+      const res = await api.get("/adoptions/me"); // API call
+      setApps(res.data);  // Save response data to state
     } catch {
-      setError("Failed to load your applications.");
+      setError("Failed to load your applications."); // Show error message
     } finally {
-      setLoading(false);
+      setLoading(false);  // Stop loader
     }
   };
 
+  // Function to determine the badge class based on application status
   const getBadgeClass = (status) => {
     switch (status) {
       case "APPROVED":
@@ -30,7 +38,7 @@ const MyApplications = () => {
       case "REJECTED":
         return "badge bg-danger";
       default:
-        return "badge bg-warning text-dark";
+        return "badge bg-warning text-dark"; // Pending or other statuses
     }
   };
 
@@ -52,15 +60,18 @@ const MyApplications = () => {
         </div>
       )}
 
+      {/* DISPLAY APPLICATIONS */}
       {!loading && (
         <>
           {apps.length === 0 ? (
+            // Show message if user has no applications
             <div className="card text-center p-4">
               <p className="mb-0 text-muted">
                 You have not applied for any pets yet.
               </p>
             </div>
           ) : (
+            // List of applications
             <div className="card shadow-sm">
               <ul className="list-group list-group-flush">
                 {apps.map((a) => (
@@ -68,6 +79,7 @@ const MyApplications = () => {
                     key={a.id}
                     className="list-group-item d-flex justify-content-between align-items-center"
                   >
+                    {/* Pet info */}
                     <div>
                       <strong>{a.name}</strong>
                       <div className="text-muted small">
@@ -75,6 +87,7 @@ const MyApplications = () => {
                       </div>
                     </div>
 
+                    {/* Status badge */}
                     <span className={getBadgeClass(a.status)}>
                       {a.status}
                     </span>

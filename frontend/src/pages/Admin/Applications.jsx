@@ -3,19 +3,30 @@ import api from "../../api/axios";
 import { useNavigate } from "react-router-dom";
 
 const Applications = () => {
+  // Store list of adoption applications
   const [apps, setApps] = useState([]);
+
+  // Global loading state for fetch & actions
   const [loading, setLoading] = useState(false);
+
+  // Alert state for success / error messages
   const [alert, setAlert] = useState({ type: "", message: "" });
+
+  // Used to navigate to pet details page
   const navigate = useNavigate();
+
+  // Fetch applications on initial page load
   useEffect(() => {
     fetchApps();
   }, []);
 
+  // Show bootstrap alert with auto-dismiss
   const showAlert = (type, message) => {
     setAlert({ type, message });
     setTimeout(() => setAlert({ type: "", message: "" }), 3000);
   };
 
+  // Fetch all adoption applications (Admin)
   const fetchApps = async () => {
     try {
       setLoading(true);
@@ -28,11 +39,18 @@ const Applications = () => {
     }
   };
 
+  // Update application status (APPROVED / REJECTED)
   const update = async (id, status) => {
     try {
       setLoading(true);
       await api.put(`/adoptions/${id}`, { status });
-      showAlert("success", `Application ${status.toLowerCase()} successfully`);
+
+      showAlert(
+        "success",
+        `Application ${status.toLowerCase()} successfully`
+      );
+
+      // Refresh list after update
       fetchApps();
     } catch {
       showAlert("danger", "Action failed. Try again.");
@@ -45,20 +63,21 @@ const Applications = () => {
     <div className="container mt-4">
       <h2 className="mb-4">Adoption Applications</h2>
 
-      {/* Bootstrap Alert */}
+      {/* Alert message */}
       {alert.message && (
         <div className={`alert alert-${alert.type} alert-dismissible fade show`}>
           {alert.message}
         </div>
       )}
 
-      {/* Loader */}
+      {/* Loading spinner */}
       {loading && (
         <div className="text-center my-4">
           <div className="spinner-border text-primary" />
         </div>
       )}
 
+      {/* Applications table */}
       {!loading && (
         <div className="table-responsive">
           <table className="table table-bordered table-hover align-middle">
@@ -73,6 +92,7 @@ const Applications = () => {
             </thead>
 
             <tbody>
+              {/* Empty state */}
               {apps.length === 0 && (
                 <tr>
                   <td colSpan="5" className="text-center text-muted">
@@ -81,24 +101,39 @@ const Applications = () => {
                 </tr>
               )}
 
+              {/* Application rows */}
               {apps.map((a, index) => (
                 <tr key={a.id}>
                   <td>{index + 1}</td>
+
+                  {/* Applicant name */}
                   <td>{a.user}</td>
-                  <td className="clickable-link"
-                    onClick={() => navigate(`/pets/${a.petId}`)}>{a.pet}</td>
+
+                  {/* Clickable pet name → navigates to pet details */}
+                  <td
+                    className="clickable-link"
+                    onClick={() => navigate(`/pets/${a.petId}`)}
+                  >
+                    {a.pet}
+                  </td>
+
+                  {/* Status badge */}
                   <td>
                     <span
                       className={`badge 
-                        ${a.status === "APPROVED"
-                          ? "bg-success"
-                          : a.status === "REJECTED"
+                        ${
+                          a.status === "APPROVED"
+                            ? "bg-success"
+                            : a.status === "REJECTED"
                             ? "bg-danger"
-                            : "bg-warning text-dark"}`}
+                            : "bg-warning text-dark"
+                        }`}
                     >
                       {a.status}
                     </span>
                   </td>
+
+                  {/* Action buttons */}
                   <td className="text-center">
                     <button
                       className="btn btn-sm btn-success me-2"
