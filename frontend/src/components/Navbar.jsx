@@ -8,7 +8,7 @@ const Navbar = () => {
   return (
     <nav className="navbar navbar-expand-lg navbar-dark bg-dark px-3">
       <Link className="navbar-brand" to="/">
-       Pet Adoption
+        Pet Adoption
       </Link>
 
       <button
@@ -46,11 +46,13 @@ const Navbar = () => {
 
           {user && (
             <>
-              {user.role === "USER" && (<li className="nav-item">
-                <NavLink className="nav-link" to="/my-applications">
-                  My Applications
-                </NavLink>
-              </li>)}
+              {user.role === "USER" && (
+                <li className="nav-item">
+                  <NavLink className="nav-link" to="/my-applications">
+                    My Applications
+                  </NavLink>
+                </li>
+              )}
 
               {user.role === "ADMIN" && (
                 <>
@@ -68,9 +70,16 @@ const Navbar = () => {
                 </>
               )}
 
+              {/* Greeting instead of tab */}
+              <li className="nav-item d-flex align-items-center">
+                <span className="navbar-text text-light me-3">
+                  👋 Hello, {user.name || "User"}
+                </span>
+              </li>
+
               <li className="nav-item">
                 <button
-                  className="btn btn-outline-light btn-sm ms-lg-2"
+                  className="btn btn-outline-light btn-sm"
                   onClick={logout}
                 >
                   Logout

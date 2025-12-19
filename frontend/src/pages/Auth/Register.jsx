@@ -6,17 +6,30 @@ const Register = () => {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [alert, setAlert] = useState({ type: "", message: "" });
+
   const navigate = useNavigate();
+
+  const showAlert = (type, message) => {
+    setAlert({ type, message });
+    setTimeout(() => setAlert({ type: "", message: "" }), 3000);
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
 
     try {
+      setLoading(true);
       await api.post("/auth/register", { name, email, password });
-      alert("Registered successfully");
-      navigate("/login");
+
+      showAlert("success", "Registered successfully! Redirecting to login...");
+
+      setTimeout(() => navigate("/login"), 1500);
     } catch {
-      alert("Registration failed");
+      showAlert("danger", "Registration failed. Email may already exist.");
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -28,6 +41,13 @@ const Register = () => {
             <div className="card-body">
               <h3 className="text-center mb-4">Register</h3>
 
+              {/* ALERT */}
+              {alert.message && (
+                <div className={`alert alert-${alert.type}`}>
+                  {alert.message}
+                </div>
+              )}
+
               <form onSubmit={handleSubmit}>
                 <div className="mb-3">
                   <label className="form-label">Name</label>
@@ -38,6 +58,7 @@ const Register = () => {
                     value={name}
                     onChange={e => setName(e.target.value)}
                     required
+                    disabled={loading}
                   />
                 </div>
 
@@ -50,6 +71,7 @@ const Register = () => {
                     value={email}
                     onChange={e => setEmail(e.target.value)}
                     required
+                    disabled={loading}
                   />
                 </div>
 
@@ -62,11 +84,23 @@ const Register = () => {
                     value={password}
                     onChange={e => setPassword(e.target.value)}
                     required
+                    disabled={loading}
                   />
                 </div>
 
-                <button className="btn btn-success w-100" type="submit">
-                  Create Account
+                <button
+                  className="btn btn-success w-100"
+                  type="submit"
+                  disabled={loading}
+                >
+                  {loading ? (
+                    <>
+                      <span className="spinner-border spinner-border-sm me-2" />
+                      Creating account...
+                    </>
+                  ) : (
+                    "Create Account"
+                  )}
                 </button>
               </form>
 

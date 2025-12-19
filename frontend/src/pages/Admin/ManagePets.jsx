@@ -14,32 +14,69 @@ const ManagePets = () => {
   const [form, setForm] = useState(initialForm);
   const [editingId, setEditingId] = useState(null);
 
+  const [loading, setLoading] = useState(false);
+  const [alert, setAlert] = useState({ type: "", message: "" });
+  const [showModal, setShowModal] = useState(false);
+
+  const [page, setPage] = useState(1);
+  const [limit] = useState(10); // pets per page
+  const [totalPets, setTotalPets] = useState(0);
+
   useEffect(() => {
     fetchPets();
-  }, []);
+  }, [page]);
+
+  const showAlert = (type, message) => {
+    setAlert({ type, message });
+    setTimeout(() => setAlert({ type: "", message: "" }), 3000);
+  };
 
   const fetchPets = async () => {
-    const res = await api.get("/pets");
-    setPets(res.data);
+    try {
+      setLoading(true);
+      const res = await api.get("/pets", { params: { page, limit } });
+      setPets(res.data);
+      setTotalPets(res.data.total || res.data.length); // adapt based on API
+    } catch {
+      showAlert("danger", "Failed to fetch pets");
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-
-    if (editingId) {
-      await api.put(`/pets/${editingId}`, form);
-    } else {
-      await api.post("/pets", form);
+    try {
+      setLoading(true);
+      if (editingId) {
+        await api.put(`/pets/${editingId}`, form);
+        showAlert("success", "Pet updated successfully");
+      } else {
+        await api.post("/pets", form);
+        showAlert("success", "Pet added successfully");
+      }
+      setForm(initialForm);
+      setEditingId(null);
+      setShowModal(false);
+      fetchPets();
+    } catch {
+      showAlert("danger", "Action failed. Please try again.");
+    } finally {
+      setLoading(false);
     }
-
-    setForm(initialForm);
-    setEditingId(null);
-    fetchPets();
   };
 
   const remove = async (id) => {
-    await api.delete(`/pets/${id}`);
-    setPets(pets.filter(p => p.id !== id));
+    try {
+      setLoading(true);
+      await api.delete(`/pets/${id}`);
+      showAlert("success", "Pet deleted successfully");
+      fetchPets();
+    } catch {
+      showAlert("danger", "Delete failed");
+    } finally {
+      setLoading(false);
+    }
   };
 
   const edit = (pet) => {
@@ -51,148 +88,218 @@ const ManagePets = () => {
       age: pet.age,
       description: pet.description,
     });
+    setShowModal(true);
   };
+
+  const totalPages = Math.ceil(totalPets / limit);
 
   return (
     <div className="container mt-4">
       <h2 className="mb-4">Manage Pets</h2>
 
-      {/* FORM CARD */}
-      <div className="card mb-4">
-        <div className="card-header">
-          <strong>{editingId ? "Edit Pet" : "Add New Pet"}</strong>
+      {/* ALERT */}
+      {alert.message && (
+        <div className={`alert alert-${alert.type} fade show`}>
+          {alert.message}
         </div>
+      )}
 
-        <div className="card-body">
-          <form onSubmit={handleSubmit}>
-            <div className="row g-3">
-              <div className="col-md-6">
-                <input
-                  className="form-control"
-                  placeholder="Pet Name"
-                  value={form.name}
-                  onChange={e => setForm({ ...form, name: e.target.value })}
-                  required
-                />
-              </div>
-
-              <div className="col-md-6">
-                <input
-                  className="form-control"
-                  placeholder="Species"
-                  value={form.species}
-                  onChange={e => setForm({ ...form, species: e.target.value })}
-                  required
-                />
-              </div>
-
-              <div className="col-md-6">
-                <input
-                  className="form-control"
-                  placeholder="Breed"
-                  value={form.breed}
-                  onChange={e => setForm({ ...form, breed: e.target.value })}
-                  required
-                />
-              </div>
-
-              <div className="col-md-6">
-                <input
-                  type="number"
-                  className="form-control"
-                  placeholder="Age"
-                  value={form.age}
-                  onChange={e => setForm({ ...form, age: e.target.value })}
-                  required
-                />
-              </div>
-
-              <div className="col-12">
-                <textarea
-                  className="form-control"
-                  placeholder="Description"
-                  rows="3"
-                  value={form.description}
-                  onChange={e => setForm({ ...form, description: e.target.value })}
-                />
-              </div>
-            </div>
-
-            <div className="mt-3">
-              <button className="btn btn-primary me-2" type="submit">
-                {editingId ? "Update Pet" : "Add Pet"}
-              </button>
-
-              {editingId && (
-                <button
-                  type="button"
-                  className="btn btn-secondary"
-                  onClick={() => {
-                    setEditingId(null);
-                    setForm(initialForm);
-                  }}
-                >
-                  Cancel
-                </button>
-              )}
-            </div>
-          </form>
+      {/* LOADER */}
+      {loading && (
+        <div className="text-center my-3">
+          <div className="spinner-border text-primary" />
         </div>
+      )}
+
+      {/* ADD PET BUTTON */}
+      <div className="mb-3">
+        <button
+          className="btn btn-primary"
+          onClick={() => {
+            setEditingId(null);
+            setForm(initialForm);
+            setShowModal(true);
+          }}
+        >
+          Add New Pet
+        </button>
       </div>
 
       {/* PET LIST */}
-      <div className="card">
-        <div className="card-header">
-          <strong>Pet List</strong>
-        </div>
+      <div className="table-responsive">
+        <table className="table table-hover align-middle">
+          <thead className="table-light">
+            <tr>
+              <th>Name</th>
+              <th>Species</th>
+              <th>Breed</th>
+              <th>Age</th>
+              <th className="text-center">Actions</th>
+            </tr>
+          </thead>
 
-        <div className="table-responsive">
-          <table className="table table-hover mb-0 align-middle">
-            <thead className="table-light">
+          <tbody>
+            {pets.length === 0 && (
               <tr>
-                <th>Name</th>
-                <th>Species</th>
-                <th>Breed</th>
-                <th>Age</th>
-                <th className="text-center">Actions</th>
+                <td colSpan="5" className="text-center text-muted">
+                  No pets found
+                </td>
               </tr>
-            </thead>
+            )}
 
-            <tbody>
-              {pets.length === 0 && (
-                <tr>
-                  <td colSpan="5" className="text-center text-muted">
-                    No pets found
-                  </td>
-                </tr>
-              )}
+            {pets.map((p) => (
+              <tr key={p.id}>
+                <td>{p.name}</td>
+                <td>{p.species}</td>
+                <td>{p.breed}</td>
+                <td>{p.age}</td>
+                <td className="text-center">
+                  <button
+                    className="btn btn-sm btn-warning me-2"
+                    onClick={() => edit(p)}
+                    disabled={loading}
+                  >
+                    Edit
+                  </button>
+                  <button
+                    className="btn btn-sm btn-danger"
+                    onClick={() => remove(p.id)}
+                    disabled={loading}
+                  >
+                    Delete
+                  </button>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
 
-              {pets.map(p => (
-                <tr key={p.id}>
-                  <td>{p.name}</td>
-                  <td>{p.species}</td>
-                  <td>{p.breed}</td>
-                  <td>{p.age}</td>
-                  <td className="text-center">
-                    <button
-                      className="btn btn-sm btn-warning me-2"
-                      onClick={() => edit(p)}
-                    >
-                      Edit
-                    </button>
+      {/* PAGINATION */}
+      {totalPages > 1 && (
+        <nav className="mt-3">
+          <ul className="pagination justify-content-center">
+            <li className={`page-item ${page === 1 && "disabled"}`}>
+              <button className="page-link" onClick={() => setPage(page - 1)}>
+                Previous
+              </button>
+            </li>
 
-                    <button
-                      className="btn btn-sm btn-danger"
-                      onClick={() => remove(p.id)}
-                    >
-                      Delete
-                    </button>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
+            {[...Array(totalPages)].map((_, i) => (
+              <li
+                key={i}
+                className={`page-item ${page === i + 1 && "active"}`}
+              >
+                <button className="page-link" onClick={() => setPage(i + 1)}>
+                  {i + 1}
+                </button>
+              </li>
+            ))}
 
-          </table>
+            <li className={`page-item ${page === totalPages && "disabled"}`}>
+              <button className="page-link" onClick={() => setPage(page + 1)}>
+                Next
+              </button>
+            </li>
+          </ul>
+        </nav>
+      )}
+
+      {/* MODAL */}
+      <div
+        className={`modal fade ${showModal ? "show d-block" : ""}`}
+        tabIndex="-1"
+        style={{ backgroundColor: showModal ? "rgba(0,0,0,0.5)" : "" }}
+      >
+        <div className="modal-dialog">
+          <div className="modal-content">
+            <form onSubmit={handleSubmit}>
+              <div className="modal-header">
+                <h5 className="modal-title">
+                  {editingId ? "Edit Pet" : "Add New Pet"}
+                </h5>
+                <button
+                  type="button"
+                  className="btn-close"
+                  onClick={() => setShowModal(false)}
+                ></button>
+              </div>
+              <div className="modal-body">
+                <div className="mb-3">
+                  <label className="form-label">Name</label>
+                  <input
+                    className="form-control"
+                    value={form.name}
+                    onChange={(e) =>
+                      setForm({ ...form, name: e.target.value })
+                    }
+                    required
+                  />
+                </div>
+
+                <div className="mb-3">
+                  <label className="form-label">Species</label>
+                  <input
+                    className="form-control"
+                    value={form.species}
+                    onChange={(e) =>
+                      setForm({ ...form, species: e.target.value })
+                    }
+                    required
+                  />
+                </div>
+
+                <div className="mb-3">
+                  <label className="form-label">Breed</label>
+                  <input
+                    className="form-control"
+                    value={form.breed}
+                    onChange={(e) =>
+                      setForm({ ...form, breed: e.target.value })
+                    }
+                    required
+                  />
+                </div>
+
+                <div className="mb-3">
+                  <label className="form-label">Age</label>
+                  <input
+                    type="number"
+                    className="form-control"
+                    value={form.age}
+                    onChange={(e) =>
+                      setForm({ ...form, age: e.target.value })
+                    }
+                    required
+                  />
+                </div>
+
+                <div className="mb-3">
+                  <label className="form-label">Description</label>
+                  <textarea
+                    className="form-control"
+                    rows="3"
+                    value={form.description}
+                    onChange={(e) =>
+                      setForm({ ...form, description: e.target.value })
+                    }
+                  ></textarea>
+                </div>
+              </div>
+              <div className="modal-footer">
+                <button
+                  type="button"
+                  className="btn btn-secondary"
+                  onClick={() => setShowModal(false)}
+                >
+                  Cancel
+                </button>
+                <button type="submit" className="btn btn-primary" disabled={loading}>
+                  {editingId ? "Update" : "Add"}
+                </button>
+              </div>
+            </form>
+          </div>
         </div>
       </div>
     </div>

@@ -7,10 +7,11 @@ const PetDetails = () => {
   const { id } = useParams();
   const { user } = useContext(AuthContext);
   const navigate = useNavigate();
+
   const [pet, setPet] = useState(null);
   const [loading, setLoading] = useState(true);
 
-  // Toast state
+  // Toast
   const [toastMsg, setToastMsg] = useState("");
   const [showToast, setShowToast] = useState(false);
   const toastRef = useRef(null);
@@ -27,24 +28,24 @@ const PetDetails = () => {
     fetchPet();
   }, [id]);
 
-  const showBootstrapToast = (message) => {
-    setToastMsg(message);
+  const showToastMsg = (msg) => {
+    setToastMsg(msg);
     setShowToast(true);
-    setTimeout(() => setShowToast(false), 3000); // auto hide
+    setTimeout(() => setShowToast(false), 3000);
   };
 
   const apply = async () => {
     if (!user) {
-      showBootstrapToast("Please login to apply for adoption.");
-      setTimeout(() => navigate("/login"), 2000);
+      showToastMsg("Please login to apply.");
+      setTimeout(() => navigate("/login"), 1500);
       return;
     }
 
     try {
       await api.post(`/adoptions/${id}`);
-      showBootstrapToast("Applied for adoption successfully!");
+      showToastMsg("Application submitted successfully!");
     } catch {
-      showBootstrapToast("You have already applied or cannot apply.");
+      showToastMsg("You already applied or cannot apply.");
     }
   };
 
@@ -66,26 +67,32 @@ const PetDetails = () => {
 
   return (
     <div className="container mt-4">
-      {/* Bootstrap Toast */}
+
+      {/* TOAST */}
       <div
+        ref={toastRef}
         className={`toast position-fixed top-0 end-0 m-3 ${
           showToast ? "show" : "hide"
         }`}
-        role="alert"
-        aria-live="assertive"
-        aria-atomic="true"
-        ref={toastRef}
+        style={{ zIndex: 9999 }}
       >
         <div className="toast-header">
-          <strong className="me-auto">Notification</strong>
+          <strong className="me-auto">Notice</strong>
           <button
-            type="button"
             className="btn-close"
             onClick={() => setShowToast(false)}
-          ></button>
+          />
         </div>
         <div className="toast-body">{toastMsg}</div>
       </div>
+
+      {/* BACK BUTTON */}
+      <button
+        className="btn btn-link mb-3"
+        onClick={() => navigate(-1)}
+      >
+        ← Back to list
+      </button>
 
       <div className="row justify-content-center">
         <div className="col-md-8">
@@ -93,19 +100,13 @@ const PetDetails = () => {
             <div className="card-body">
               <h2 className="mb-3">{pet.name}</h2>
 
-              <p className="text-muted mb-2">
-                <strong>Species:</strong> {pet.species}
-              </p>
+              <p><strong>Species:</strong> {pet.species}</p>
+              <p><strong>Breed:</strong> {pet.breed}</p>
+              <p><strong>Age:</strong> {pet.age} year</p>
 
-              <p className="text-muted mb-2">
-                <strong>Breed:</strong> {pet.breed}
+              <p className="mt-3">
+                <strong>Description:</strong> {pet.description}
               </p>
-
-              <p className="text-muted mb-2">
-                <strong>Age:</strong> {pet.age} year
-              </p>
-
-              <p className="mt-3"><strong>Description:</strong> {pet.description}</p>
 
               <hr />
 

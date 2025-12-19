@@ -1,8 +1,8 @@
 {
   "name": "frontend",
   "private": true,
-  "version": "1.0.0",
-  "versioncomment": "Added UI for Pet Adoption Management",
+  "version": "1.0.1",
+  "versioncomment": "Added toasters, seraching and filtering",
   "type": "module",
   "scripts": {
     "dev": "vite",
